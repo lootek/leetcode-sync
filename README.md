@@ -61,8 +61,6 @@ GitHub Action for automatically syncing LeetCode submissions to a GitHub reposit
 - `github-token` _(required)_: The GitHub access token for pushing solutions to the repository
 - `leetcode-csrf-token` _(required)_: The LeetCode CSRF token for retrieving submissions from LeetCode
 - `leetcode-session` _(required)_: The LeetCode session value for retrieving submissions from LeetCode
-- `filter-duplicate-secs`: Number of seconds after an accepted solution to ignore other accepted solutions for the same problem, default: 86400 (1 day)
-- `destination-folder` _(optional)_: The folder in your repo to save the submissions to (necessary for shared repos)
 
 ## Shared Repos
 

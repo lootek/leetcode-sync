@@ -13,13 +13,6 @@ inputs:
   leetcode-session:
     description: 'The LeetCode session value'
     required: true
-  filter-duplicate-secs:
-    description: 'Number of seconds after an accepted solution to ignore other accepted solutions for the same problem'
-    required: false
-    default: 86400
-  destination-folder:
-    description: 'The folder to save the synced files in (relative to the top level of your repo)'
-    required: false
 runs:
   using: 'node16'
   main: 'index.js'
