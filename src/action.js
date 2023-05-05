@@ -102,8 +102,6 @@ async function commit(params) {
 function addToSubmissions(params) {
     const {
         response,
-        details,
-        submissions_dict,
         submissions
     } = params;
 
@@ -111,35 +109,8 @@ function addToSubmissions(params) {
         if (submission.status !== 10) { // not accepted
             continue;
         }
-        const name = submission.title;
-        const lang = submission.lang;
-        const timestamp = submission.timestamp;
 
-        if (!submissions_dict[name]) {
-            submissions_dict[name] = {};
-        }
-
-        if (!submissions_dict[name][lang]) {
-            submissions_dict[name][lang] = {
-                timestamp: timestamp,
-                id: submission.id
-            };
-        }
-
-        if (submissions_dict[name][lang].timestamp > timestamp) {
-            continue // ignore older solutions
-        }
-
-        submissions_dict[name][lang] = {
-            timestamp: timestamp,
-            id: submission.id
-        };
-    }
-
-    for (const s in submissions_dict) {
-        for (const l in submissions_dict[s]) {
-            submissions.push(submissions_dict[s][l].id);
-        }
+        submissions.push(submission.id);
     }
 
     return true;
@@ -238,7 +209,6 @@ async function sync(inputs) {
     let response = null;
     let offset = 0;
     const submissions = [];
-    const submissions_dict = {};
     do {
         const config = {
             params: {
@@ -278,7 +248,7 @@ async function sync(inputs) {
         }
         response = await getSubmissions(maxRetries);
 
-        if (!addToSubmissions({response, details, submissions_dict, submissions})) {
+        if (!addToSubmissions({response, submissions})) {
             break;
         }
 
