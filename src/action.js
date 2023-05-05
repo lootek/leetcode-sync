@@ -1,5 +1,7 @@
 const axios = require('axios');
 const {Octokit} = require('@octokit/rest');
+const {NodeHtmlMarkdown} = require('node-html-markdown');
+const sprightly = require('sprightly')
 
 const COMMIT_MESSAGE = '[Add LeetCode submission]';
 const LANG_TO_EXTENSION = {
@@ -49,13 +51,16 @@ async function commit(params) {
         throw `Language ${submission.lang} does not have a registered extension.`;
     }
 
-    const path = `${submission.title}/solution_${submission.id}.${LANG_TO_EXTENSION[submission.lang]}`
-
     const treeData = [
         {
-            path,
+            path: `${submission.title}/solution.${LANG_TO_EXTENSION[submission.lang]}`,
             mode: '100644',
             content: submission.code,
+        },
+        {
+            path: `${submission.title}/README.md`,
+            mode: '100644',
+            content: submission.readme,
         }
     ];
 
@@ -110,7 +115,10 @@ function addToSubmissions(params) {
             continue;
         }
 
-        submissions.push(submission.id);
+        submissions.push({
+            id: submission.id,
+            titleSlug: submission.title_slug
+        });
     }
 
     return true;
@@ -129,14 +137,14 @@ async function sync(inputs) {
         auth: githubToken,
         userAgent: 'LeetCode sync to GitHub - GitHub Action',
     });
-    // First, get the time the timestamp for when the syncer last ran.
+    // First, get the timestamp for when the syncer last ran.
     const commits = await octokit.repos.listCommits({
         owner: owner,
         repo: repo,
         per_page: 100,
     });
 
-    async function getSubmissionDetails(id) {
+    const getSubmissionDetails = async (id, titleSlug) => {
         const config = {
             headers: {
                 'X-Requested-With': 'XMLHttpRequest',
@@ -147,7 +155,7 @@ async function sync(inputs) {
 
         const gql = {
             "operationName": "submissionDetails",
-            "query": `query submissionDetails($submissionId: Int!) {
+            "query": `query submissionDetails($submissionId: Int!, $titleSlug: String!) {
               submissionDetails(submissionId: $submissionId) {
                 runtime
                 runtimeDisplay
@@ -184,13 +192,29 @@ async function sync(inputs) {
                 compileError
                 lastTestcase
               }
+              question(titleSlug: $titleSlug) {
+                questionId
+                title
+                difficulty
+                likes
+                dislikes
+                isLiked
+                stats
+                content
+                topicTags {
+                  name
+                }
+                sampleTestCase
+              }
             }`,
             "variables": {
                 submissionId: id,
+                titleSlug: titleSlug
             }
         };
 
-        return axios.post('https://leetcode.com/graphql', gql, config);
+        const resp = await axios.post('https://leetcode.com/graphql', gql, config);
+        return resp;
     }
 
     // commitInfo is used to get the original name / email to use for the author / committer.
@@ -222,7 +246,7 @@ async function sync(inputs) {
                 'Cookie': `csrftoken=${leetcodeCSRFToken};LEETCODE_SESSION=${leetcodeSession};`,
             },
         };
-        log(`Getting submission from LeetCode, offset ${offset}`);
+        log(`Getting submissions from LeetCode, offset ${offset}`);
 
         const getSubmissions = async (maxRetries, retryCount = 0) => {
             try {
@@ -269,9 +293,42 @@ async function sync(inputs) {
     let latestCommitSHA = commits.data[0].sha;
     let treeSHA = commits.data[0].commit.tree.sha;
 
-    // Write in reverse order (oldest first), so that if there are errors, the last sync time is still valid.
+    // Write in reverse order (oldest first)
     for (let i = submissions.length - 1; i >= 0; i--) {
-        const submission = await getSubmissionDetails(submissions[i]);
+        const detailsResponse = await getSubmissionDetails(submissions[i].id, submissions[i].titleSlug);
+        const details = detailsResponse.data.data;
+
+        const tags = [];
+        for (const t in details.question.topicTags) {
+            tags.push(`[${details.question.topicTags[t].name}](https://leetcode.com/tag/${details.question.topicTags[t].name})`);
+        }
+
+        let submission = {
+            id: submissions[i].id,
+            slug: submissions[i].titleSlug,
+            title: `${details.question.title} (${details.question.questionId})`,
+            lang: details.submissionDetails.lang.name,
+            timestamp: details.submissionDetails.timestamp,
+            code: details.submissionDetails.code,
+            question: NodeHtmlMarkdown.translate(details.question.content),
+            social: {
+                likes: details.question.likes,
+                dislikes: details.question.dislikes,
+                difficulty: details.question.difficulty,
+                stats: details.question.stats,
+            },
+            tags: tags,
+            perf: {
+                runtimeDisplay: details.submissionDetails.runtimeDisplay,
+                runtimePercentile: details.submissionDetails.runtimePercentile.toFixed(2),
+                runtimeDistribution: details.submissionDetails.runtimeDistribution,
+                memoryDisplay: details.submissionDetails.memoryDisplay,
+                memoryPercentile: details.submissionDetails.memoryPercentile.toFixed(2),
+                memoryDistribution: details.submissionDetails.memoryDistribution,
+            }
+        };
+
+        submission.readme = sprightly.sprightly('./src/readme.tmpl', submission);
 
         [treeSHA, latestCommitSHA] = await commit({
             octokit,
