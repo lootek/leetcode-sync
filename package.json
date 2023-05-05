@@ -8,15 +8,15 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/joshcai/leetcode-sync.git"
+    "url": "git+https://github.com/lootek/leetcode-sync.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/joshcai/leetcode-sync/issues"
+    "url": "https://github.com/lootek/leetcode-sync/issues"
   },
-  "homepage": "https://github.com/joshcai/leetcode-sync#readme",
+  "homepage": "https://github.com/lootek/leetcode-sync#readme",
   "dependencies": {
     "@actions/core": "^1.10.0",
     "@actions/github": "^5.1.1",
