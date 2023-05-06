@@ -203,6 +203,7 @@ async function sync(inputs) {
                 content
                 topicTags {
                   name
+                  slug
                 }
                 sampleTestCase
               }
@@ -300,7 +301,7 @@ async function sync(inputs) {
 
         const tags = [];
         for (const t in details.question.topicTags) {
-            tags.push(`[${details.question.topicTags[t].name}](https://leetcode.com/tag/${details.question.topicTags[t].name})`);
+            tags.push(`[${details.question.topicTags[t].name}](https://leetcode.com/tag/${details.question.topicTags[t].slug})`);
         }
 
         let submission = {
