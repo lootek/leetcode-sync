@@ -1,6 +1,8 @@
 # {{ title }}
 
-## Category
+## The Problem
+
+[{{ title }}](https://leetcode.com/problems/{{ slug }})
 
 ### Level
 
@@ -10,26 +12,30 @@
 
 {{ tags }}
 
-## Solution performance
+## Solution
 
-### CPU
+### Code
 
-Took {{ perf.runtimeDisplay }}
+[solution.go](solution.go)
 
-Beats {{ perf.runtimePercentile }}%
+[LeetCode submissions section](https://leetcode.com/problems/{{ slug }}/submissions/{{ id }}/)
 
-### Memory
+### Performance
 
-Used {{ perf.memoryDisplay }}
+[LeetCode submission details](https://leetcode.com/submissions/detail/{{ id }}/)
 
-Beats {{ perf.memoryPercentile }}%
+#### CPU
+
+Took {{ perf.runtimeDisplay }} (beats {{ perf.runtimePercentile }}%)
+
+#### Memory
+
+Used {{ perf.memoryDisplay }} (beats {{ perf.memoryPercentile }}%)
 
 ## Problem statement
 
-[{{ title }}](https://leetcode.com/problems/{{ slug }})
-
 {{ question }}
 
-### Social
+## Social rank
 
 :thumbsup: {{ social.likes }} / :thumbsdown: {{ social.dislikes }}

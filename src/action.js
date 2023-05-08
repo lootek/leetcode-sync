@@ -304,7 +304,7 @@ async function sync(inputs) {
 
         const tags = [];
         for (const t in details.question.topicTags) {
-            tags.push(`[${details.question.topicTags[t].name}](https://leetcode.com/tag/${details.question.topicTags[t].slug})`);
+            tags.push(` [${details.question.topicTags[t].name}](https://leetcode.com/tag/${details.question.topicTags[t].slug})`);
         }
 
         let submission = {
@@ -332,7 +332,7 @@ async function sync(inputs) {
             }
         };
 
-        submission.readme = sprightly.sprightly('./src/readme.tmpl', submission);
+        submission.readme = sprightly.sprightly('readme.tmpl', submission);
 
         [treeSHA, latestCommitSHA] = await commit({
             octokit,
