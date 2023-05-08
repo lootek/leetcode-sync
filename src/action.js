@@ -3,6 +3,9 @@ const {Octokit} = require('@octokit/rest');
 const {NodeHtmlMarkdown} = require('node-html-markdown');
 const sprightly = require('sprightly')
 
+const process = require('process')
+process.chdir(__dirname)
+
 const COMMIT_MESSAGE = '[Add LeetCode submission]';
 const LANG_TO_EXTENSION = {
     'bash': 'sh',
