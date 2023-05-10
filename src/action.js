@@ -110,10 +110,15 @@ async function commit(params) {
 function addToSubmissions(params) {
     const {
         response,
-        submissions
+        submissions,
+        mostRecentTimestamp
     } = params;
 
     for (const submission of response.data.submissions_dump) {
+        if (submission.timestamp <= mostRecentTimestamp) { // don't re-add already synchronized submissions
+            continue;
+        }
+
         if (submission.status !== 10) { // not accepted
             continue;
         }
@@ -224,12 +229,14 @@ async function sync(inputs) {
     // commitInfo is used to get the original name / email to use for the author / committer.
     // Since we need to modify the commit time, we can't use the default settings for the
     // authenticated user.
+    let mostRecentTimestamp = 0;
     let commitInfo = commits.data[commits.data.length - 1].commit.author;
     for (const commit of commits.data) {
         if (!commit.commit.message.startsWith(COMMIT_MESSAGE)) {
             continue
         }
         commitInfo = commit.commit.author;
+        mostRecentTimestamp = Date.parse(commit.commit.committer.date) / 1000;
         break;
     }
 
@@ -276,7 +283,7 @@ async function sync(inputs) {
         }
         response = await getSubmissions(maxRetries);
 
-        if (!addToSubmissions({response, submissions})) {
+        if (!addToSubmissions({response, submissions, mostRecentTimestamp})) {
             break;
         }
 
